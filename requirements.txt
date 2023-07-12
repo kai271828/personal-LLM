@@ -1,0 +1,26 @@
+accelerate>=0.20.3
+appdirs>=1.4.4
+bitsandbytes>=0.39.1
+black>=23.3.0
+black[jupyter]
+cupy-cuda11x>=12.0.0
+datasets>=2.13.1
+fire>=0.5.0
+gradio>=3.35.2
+gradio_client>=0.2.7
+huggingface-hub>=0.16.2
+jupyter-lsp>=2.0.0
+loralib>=0.1.1
+numpy>=1.15.0
+packaging>=14.3
+peft @ git+https://github.com/huggingface/peft.git@39ef2546d5d9b8f5f8a7016ec10657887a867041
+protobuf>=4.21.6
+scipy>=1.10.1
+sentencepiece>=0.1.99
+shapely>=2
+tensorboard>=2.12.3
+tensorboard-data-server>=0.7.1
+tokenize-rt>=5.1.0
+tokenizers>=0.13.3
+torch>=2.0
+transformers>=4.30.2
