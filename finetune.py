@@ -55,7 +55,7 @@ def main(
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to alpaca.
 ):
-    assert data_path, "Please specify a --data_path, e.g. --base_model='./data'"
+    assert data_path, "Please specify a --data_path, e.g. --data_path='./data'"
 
     gradient_accumulation_steps = batch_size // micro_batch_size
 
