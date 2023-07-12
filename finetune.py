@@ -112,8 +112,7 @@ def main(
                 max_length=cutoff_len + 1,
                 padding="max_length",
             )["input_ids"]
-            - 1
-        )
+        ) - 1
 
         full_tokens = tokenizer(
             full_prompt,
