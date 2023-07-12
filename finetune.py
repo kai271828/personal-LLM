@@ -45,7 +45,6 @@ def main(
         "v_proj",
     ],
     # llm hyperparams
-    train_on_inputs: bool = True,  # if False, masks out inputs in loss
     add_eos_token: bool = True,
     group_by_length: bool = False,  # faster, but produces an odd training loss curve
     # wandb params
@@ -106,41 +105,28 @@ def main(
 
         user_prompt = prompter.get_user_prompt(full_prompt)
 
-        user_prompt_len = len(
+        user_tokens_len = len(
             tokenizer(
                 user_prompt,
                 truncation=True,
-                max_length=CUTOFF_LEN + 1,
+                max_length=cutoff_len + 1,
                 padding="max_length",
             )["input_ids"]
             - 1
         )
 
-        if not train_on_inputs:
-            user_prompt = prompter.generate_prompt(
-                data_point["instruction"], data_point["input"]
-            )
-            tokenized_user_prompt = tokenizer(
-                user_prompt,
-                truncation=True,
-                max_length=cutoff_len + 1,
-                padding="max_length",
-            )
-
-        user_prompt_len = len(tokenized_user_prompt["input_ids"])
-        if add_eos_token:
-            user_prompt_len -= 1
-
         full_tokens = tokenizer(
-            user_prompt + data_point["output"],
+            full_prompt,
             truncation=True,
             max_length=cutoff_len + 1,
-            padding="max_length",
+            padding="max_length"
         )["input_ids"][:-1]
+
+
         return {
             "input_ids": full_tokens,
-            "labels": [-100] * len_user_prompt_tokens
-            + full_tokens[len_user_prompt_tokens:],
+            "labels": [-100] * user_tokens_len
+            + full_tokens[user_tokens_len:],
             "attention_mask": [1] * (len(full_tokens)),
         }
 

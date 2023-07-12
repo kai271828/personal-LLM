@@ -49,4 +49,4 @@ class Prompter(object):
         return output.split(self.template["response_split"])[1].strip()
 
     def get_user_prompt(self, output: str) -> str:
-        return output.split(self.template["response_split"])[0].strip()
+        return output.split(self.template["response_split"])[0].strip() + '\n\n' + self.template["response_split"]
