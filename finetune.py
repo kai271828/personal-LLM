@@ -178,6 +178,7 @@ def main(
         model.is_parallelizable = True
         model.model_parallel = True
 
+    print('trainer')
     trainer = transformers.Trainer(
         model=model,
         train_dataset=train_data,
