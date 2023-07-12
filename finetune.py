@@ -71,12 +71,13 @@ def main(
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
         
     # Only overwrite environ if wandb param passed
-    if len(wandb_project) > 0:
-        os.environ["WANDB_PROJECT"] = wandb_project
-    if len(wandb_watch) > 0:
-        os.environ["WANDB_WATCH"] = wandb_watch
-    if len(wandb_log_model) > 0:
-        os.environ["WANDB_LOG_MODEL"] = wandb_log_model
+    if use_wandb:
+        if len(wandb_project) > 0:
+            os.environ["WANDB_PROJECT"] = wandb_project
+        if len(wandb_watch) > 0:
+            os.environ["WANDB_WATCH"] = wandb_watch
+        if len(wandb_log_model) > 0:
+            os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
@@ -178,7 +179,6 @@ def main(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    print('trainer')
     trainer = transformers.Trainer(
         model=model,
         train_dataset=train_data,
