@@ -200,8 +200,8 @@ def main(
             load_best_model_at_end=True if val_set_size > 0 else False,
             ddp_find_unused_parameters=False if ddp else None,
             group_by_length=group_by_length,
-            report_to="wandb" if use_wandb else None,
-            run_name=wandb_run_name if use_wandb else None,
+            report_to=None, # "wandb" if use_wandb else None,
+            run_name=None #wandb_run_name if use_wandb else None,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
             tokenizer, mlm=False
