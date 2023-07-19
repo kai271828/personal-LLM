@@ -1,3 +1,4 @@
+# TODO: add required libraries
 import os
 import sys
 from typing import List
@@ -6,25 +7,39 @@ import fire
 import torch
 import transformers
 from datasets import load_dataset
-
 from peft import (
     LoraConfig,
+    PromptEncoderConfig,
+    PrefixTuningConfig,
+    PromptTuningConfig,
+    IA3Config,
     get_peft_model,
     get_peft_model_state_dict,
-    prepare_model_for_int8_training,
+    prepare_model_for_kbit_training,
     set_peft_model_state_dict,
 )
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
+    Trainer,
+)
 
 from utils.prompter import Prompter
 
 
 def main(
-    # model/data params
-    base_model: str = "openlm-research/open_llama_7b_v2",  # default model
+    # model/data parameters
+    base_model: str = "bigscience/bloomz-560m",  # default model
     data_path: str = "",  # required argument
     output_dir: str = "./outputs",
     cache_dir: str = "./cache",
+    quantization: str = None,
+    nested_quant: bool = False,
+    bnb_4bit_quant_type: str = "fp4",
+    # peft parameters
+    tuner: str = None,
     # training hyperparams
     batch_size: int = 128,
     micro_batch_size: int = 4,
@@ -36,7 +51,7 @@ def main(
     logging_steps: int = 10,
     save_steps: int = 200,
     save_total_limit: int = 3,
-    # lora hyperparams
+    # lora hyperparameters
     lora_r: int = 8,
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
@@ -44,55 +59,85 @@ def main(
         "q_proj",
         "v_proj",
     ],
-    # llm hyperparams
+    # ia3 hyperparameters
+    # prompt tuning hyperparameters
+    # prefix tuning hyperparameters
+    # p-tuning hyperparameters
+    # llm hyperparameters
     add_eos_token: bool = True,
     group_by_length: bool = False,  # faster, but produces an odd training loss curve
     # wandb params
-    use_wandb: bool = False,
-    wandb_project: str = "",
-    wandb_run_name: str = "",
-    wandb_watch: str = "",  # options: false | gradients | all
-    wandb_log_model: str = "",  # options: false | true
-    resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
-    prompt_template_name: str = "instruction",  # The prompt template to use, will default to alpaca.
+    # use_wandb: bool = False,
+    # wandb_project: str = "",
+    # wandb_run_name: str = "",
+    # wandb_watch: str = "",  # options: false | gradients | all
+    # wandb_log_model: str = "",  # options: false | true
+    # resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
+    prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
 ):
-    assert data_path, "Please specify a --data_path, e.g. --data_path='./data'"
+    # Check hyperparameters
+    # TODO: add the parameters and their checking if needed
+    assert (
+        data_path
+    ), "Please specify a --data_path, e.g. --data_path='./data/train.json'"
+    assert quantization in [
+        "4bit",
+        "8bit",
+        None,
+    ], "--quantization only supports '4bit', '8bit', or None."
+    assert bnb_4bit_quant_type in [
+        "fp",
+        "np",
+    ], "--bnb_4bit_quant_type only supports 'fp' or 'np'."
+    assert tuner in [
+        "LoRA",
+        "IA3",
+        "Prompt",
+        "Prefix",
+        "P-tuning",
+        None,
+    ], "--tuner only supprts 'LoRA', 'IA3', 'Prompt', 'Prefix', or 'P-tuning', or None."
 
+    # Print trainging information
+    # TODO: show the parameters set
+
+    # multi-node setting
+    device_map = "auto"
     gradient_accumulation_steps = batch_size // micro_batch_size
 
-    prompter = Prompter(prompt_template_name)
-
-    device_map = "auto"
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddp = world_size != 1
 
     if ddp:
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
-        
-    # Only overwrite environ if wandb param passed
-    if use_wandb:
-        if len(wandb_project) > 0:
-            os.environ["WANDB_PROJECT"] = wandb_project
-        if len(wandb_watch) > 0:
-            os.environ["WANDB_WATCH"] = wandb_watch
-        if len(wandb_log_model) > 0:
-            os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    model = LlamaForCausalLM.from_pretrained(
-        base_model,
-        load_in_8bit=True,
-        torch_dtype=torch.float16,
-        device_map=device_map,
-        cache_dir=cache_dir,
-    )
+    # # Only overwrite environ if wandb param passed
+    # if use_wandb:
+    #     if len(wandb_project) > 0:
+    #         os.environ["WANDB_PROJECT"] = wandb_project
+    #     if len(wandb_watch) > 0:
+    #         os.environ["WANDB_WATCH"] = wandb_watch
+    #     if len(wandb_log_model) > 0:
+    #         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    tokenizer = LlamaTokenizer.from_pretrained(
+    # Load the data
+    if data_path.endswith(".json") or data_path.endswith(".jsonl"):
+        data = load_dataset("json", data_files=data_path)
+    else:
+        data = load_dataset(data_path)
+
+    # Prepare tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(
         base_model, add_eos_token=add_eos_token, cache_dir=cache_dir
     )
 
     tokenizer.pad_token_id = 0  # unk. we want this to be different from the eos token
     tokenizer.padding_side = "left"  # Allow batched inference
+
+    # Process the data
+    # TODO: examine the processing and complete it
+    prompter = Prompter(prompt_template_name)
 
     def generate_and_tokenize_prompt(data_point):
         full_prompt = prompter.generate_prompt(
@@ -103,47 +148,96 @@ def main(
 
         user_prompt = prompter.get_user_prompt(full_prompt)
 
-        user_tokens_len = len(
-            tokenizer(
-                user_prompt,
-                truncation=True,
-                max_length=cutoff_len + 1,
-                padding="max_length",
-            )["input_ids"]
-        ) - 1
+        user_tokens_len = (
+            len(
+                tokenizer(
+                    user_prompt,
+                    truncation=True,
+                    max_length=cutoff_len + 1,
+                    padding="max_length",
+                )["input_ids"]
+            )
+            - 1
+        )
 
         full_tokens = tokenizer(
             full_prompt,
             truncation=True,
             max_length=cutoff_len + 1,
-            padding="max_length"
+            padding="max_length",
         )["input_ids"][:-1]
-
 
         return {
             "input_ids": full_tokens,
-            "labels": [-100] * user_tokens_len
-            + full_tokens[user_tokens_len:],
+            "labels": [-100] * user_tokens_len + full_tokens[user_tokens_len:],
             "attention_mask": [1] * (len(full_tokens)),
         }
 
-    model = prepare_model_for_int8_training(model)
-
-    config = LoraConfig(
-        r=lora_r,
-        lora_alpha=lora_alpha,
-        target_modules=lora_target_modules,
-        lora_dropout=lora_dropout,
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
-    model = get_peft_model(model, config)
-
-    if data_path.endswith(".json") or data_path.endswith(".jsonl"):
-        data = load_dataset("json", data_files=data_path)
+    if val_set_size > 0:
+        train_val = data["train"].train_test_split(
+            test_size=val_set_size, shuffle=True, seed=9527
+        )
+        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt)
+        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt)
     else:
-        data = load_dataset(data_path)
+        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
+        val_data = None
 
+    # Prepare model
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True if quantization == "4bit" else False,
+        load_in_8bit=True if quantization == "8bit" else False,
+        bnb_4bit_use_double_quant=True
+        if quantization == "4bit" and nested_quant
+        else False,
+        bnb_4bit_quant_type=bnb_4bit_quant_type,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+    )
+
+    # TODO: Complete the condition.
+    if quantization == "8bit":  # Fine-tune models that have been loaded in 8-bit
+        # Don’t need to pass device_map when loading the model for training
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            quantization_config=bnb_config,
+            torch_dtype=torch.float16,
+            cache_dir=cache_dir,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            quantization_config=bnb_config,
+            torch_dtype=torch.float16,
+            cache_dir=cache_dir,
+            device_map=device_map,
+        )
+
+    if quantization:
+        model = prepare_model_for_kbit_training(model)
+
+    # TODO: implement the tuner
+    if tuner == "LoRA":
+        peft_config = LoraConfig(
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            target_modules=lora_target_modules,
+            lora_dropout=lora_dropout,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+    elif tuner == "IA3":
+        raise NotImplementedError
+    elif tuner == "Prompt":
+        raise NotImplementedError
+    elif tuner == "Prefix":
+        raise NotImplementedError
+    elif tuner == "P-tuning":
+        raise NotImplementedError
+
+    if tuner:
+        model = get_peft_model(model, peft_config)
+
+    # TODO: review resume function
     if resume_from_checkpoint:
         # Check the available weights and load them
         checkpoint_name = os.path.join(
@@ -162,53 +256,49 @@ def main(
         else:
             print(f"Checkpoint {checkpoint_name} not found")
 
-    model.print_trainable_parameters()
+    if tuner:
+        model.print_trainable_parameters()
 
-    if val_set_size > 0:
-        train_val = data["train"].train_test_split(
-            test_size=val_set_size, shuffle=True, seed=9527
-        )
-        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt)
-    else:
-        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = None
-
+    # Keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
     if not ddp and torch.cuda.device_count() > 1:
-        # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
         model.is_parallelizable = True
         model.model_parallel = True
 
-    trainer = transformers.Trainer(
+    # Trainer setting
+    training_args = TrainingArguments(
+        per_device_train_batch_size=micro_batch_size,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        warmup_steps=100,
+        num_train_epochs=num_epochs,
+        learning_rate=learning_rate,
+        fp16=use_fp16,
+        logging_steps=logging_steps,
+        optim="adamw_torch",
+        evaluation_strategy="steps" if val_set_size > 0 else "no",
+        save_strategy="steps",
+        eval_steps=200 if val_set_size > 0 else None,
+        save_steps=save_steps,
+        output_dir=output_dir,
+        save_total_limit=save_total_limit,
+        load_best_model_at_end=True if val_set_size > 0 else False,
+        ddp_find_unused_parameters=False if ddp else None,
+        group_by_length=group_by_length,
+        report_to=None,  # "wandb" if use_wandb else None,
+        run_name=None,  # wandb_run_name if use_wandb else None,
+    )
+
+    data_collator = transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False)
+
+    trainer = Trainer(
         model=model,
+        args=training_args,
         train_dataset=train_data,
         eval_dataset=val_data,
-        args=transformers.TrainingArguments(
-            per_device_train_batch_size=micro_batch_size,
-            gradient_accumulation_steps=gradient_accumulation_steps,
-            warmup_steps=100,
-            num_train_epochs=num_epochs,
-            learning_rate=learning_rate,
-            fp16=use_fp16,
-            logging_steps=logging_steps,
-            optim="adamw_torch",
-            evaluation_strategy="steps" if val_set_size > 0 else "no",
-            save_strategy="steps",
-            eval_steps=200 if val_set_size > 0 else None,
-            save_steps=save_steps,
-            output_dir=output_dir,
-            save_total_limit=save_total_limit,
-            load_best_model_at_end=True if val_set_size > 0 else False,
-            ddp_find_unused_parameters=False if ddp else None,
-            group_by_length=group_by_length,
-            report_to=None, # "wandb" if use_wandb else None,
-            run_name=None #wandb_run_name if use_wandb else None,
-        ),
-        data_collator=transformers.DataCollatorForLanguageModeling(
-            tokenizer, mlm=False
-        ),
+        data_collator=data_collator,
     )
     model.config.use_cache = False
+
+    # Train
 
     old_state_dict = model.state_dict
     model.state_dict = (
@@ -220,7 +310,7 @@ def main(
 
     trainer.train()
 
-    model.save_pretrained(args.output_dir)
+    model.save_pretrained(output_dir)
 
     print("\n If there's a warning about missing keys above, please disregard :)")
 
