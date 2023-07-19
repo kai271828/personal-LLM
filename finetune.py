@@ -87,7 +87,7 @@ def main(
     ], "--quantization only supports '4bit', '8bit', or None."
     assert bnb_4bit_quant_type in [
         "fp",
-        "np",
+        "nf",
     ], "--bnb_4bit_quant_type only supports 'fp' or 'np'."
     assert tuner in [
         "LoRA",
