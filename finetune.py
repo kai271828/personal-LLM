@@ -219,7 +219,7 @@ def main(
         model = LlamaForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype="auto",
+            torch_dtype="auto",  # may be bug
             cache_dir=cache_dir,
             device_map=device_map,
         )
@@ -227,7 +227,7 @@ def main(
         model = AutoModelForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype="auto",
+            torch_dtype="auto",  # may be bug
             cache_dir=cache_dir,
             device_map=device_map,
         )
