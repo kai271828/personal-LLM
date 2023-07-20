@@ -19,8 +19,10 @@ from peft import (
     set_peft_model_state_dict,
 )
 from transformers import (
-    AutoModelForCausalLM,
     AutoTokenizer,
+    LlamaTokenizer,
+    AutoModelForCausalLM,
+    LlamaModelForCausalLM,
     BitsAndBytesConfig,
     TrainingArguments,
     Trainer,
@@ -47,10 +49,14 @@ def main(
     learning_rate: float = 3e-4,
     cutoff_len: int = 256,
     val_set_size: int = 2000,
-    use_fp16: bool = True,
+    use_fp16: bool = False,
+    use_bf16: bool = False,
     logging_steps: int = 10,
     save_steps: int = 200,
     save_total_limit: int = 3,
+    gradient_checkpointing: bool = False,
+    group_by_length: bool = False,
+    optim: str = "adamw_torch",
     # lora hyperparameters
     lora_r: int = 8,
     lora_alpha: int = 16,
@@ -65,14 +71,13 @@ def main(
     # p-tuning hyperparameters
     # llm hyperparameters
     add_eos_token: bool = True,
-    group_by_length: bool = False,  # faster, but produces an odd training loss curve
     # wandb params
     # use_wandb: bool = False,
     # wandb_project: str = "",
     # wandb_run_name: str = "",
     # wandb_watch: str = "",  # options: false | gradients | all
     # wandb_log_model: str = "",  # options: false | true
-    # resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
+    resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
 ):
     # Check hyperparameters
@@ -97,6 +102,18 @@ def main(
         "P-tuning",
         None,
     ], "--tuner only supprts 'LoRA', 'IA3', 'Prompt', 'Prefix', or 'P-tuning', or None."
+    assert prompt_template_name in [
+        None,
+        "instruction",
+    ], "--prompt_template_name only supports 'instruction' or None"
+    assert optim in [
+        "adamw_torch",
+        "adamw_hf",
+        "adafactor",
+    ], "--optim only support 'adamw_torch', 'adamw_hf', or 'adafactor"
+
+    if quantization:
+        assert tuner, "Training quantized weights directly is not supported."
 
     # Print trainging information
     # TODO: show the parameters set
@@ -128,11 +145,15 @@ def main(
         data = load_dataset(data_path)
 
     # Prepare tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(
-        base_model, add_eos_token=add_eos_token, cache_dir=cache_dir
-    )
+    if "llama" in base_model:
+        raise NotImplementedError
+        tokenizer = LlamaTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
+        tokenizer.pad_token_id = (
+            0  # unk. we want this to be different from the eos token
+        )
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
 
-    tokenizer.pad_token_id = 0  # unk. we want this to be different from the eos token
     tokenizer.padding_side = "left"  # Allow batched inference
 
     # Process the data
@@ -194,25 +215,24 @@ def main(
         bnb_4bit_compute_dtype=torch.bfloat16,
     )
 
-    # TODO: Complete the condition.
-    if quantization == "8bit":  # Fine-tune models that have been loaded in 8-bit
-        # Don’t need to pass device_map when loading the model for training
-        model = AutoModelForCausalLM.from_pretrained(
+    if "llama" in base_model:
+        model = LlamaModelForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype=torch.float16,
+            torch_dtype="auto",
             cache_dir=cache_dir,
+            device_map=device_map,
         )
     else:
         model = AutoModelForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype=torch.float16,
+            torch_dtype="auto",
             cache_dir=cache_dir,
             device_map=device_map,
         )
 
-    if quantization:
+    if quantization and tuner:
         model = prepare_model_for_kbit_training(model)
 
     # TODO: implement the tuner
@@ -239,6 +259,7 @@ def main(
 
     # TODO: review resume function
     if resume_from_checkpoint:
+        raise NotImplementedError
         # Check the available weights and load them
         checkpoint_name = os.path.join(
             resume_from_checkpoint, "pytorch_model.bin"
@@ -268,12 +289,14 @@ def main(
     training_args = TrainingArguments(
         per_device_train_batch_size=micro_batch_size,
         gradient_accumulation_steps=gradient_accumulation_steps,
+        gradient_checkpointing=gradient_checkpointing,
         warmup_steps=100,
         num_train_epochs=num_epochs,
         learning_rate=learning_rate,
         fp16=use_fp16,
+        bf16=use_bf16,
         logging_steps=logging_steps,
-        optim="adamw_torch",
+        optim=optim,
         evaluation_strategy="steps" if val_set_size > 0 else "no",
         save_strategy="steps",
         eval_steps=200 if val_set_size > 0 else None,
@@ -299,7 +322,6 @@ def main(
     model.config.use_cache = False
 
     # Train
-
     old_state_dict = model.state_dict
     model.state_dict = (
         lambda self, *_, **__: get_peft_model_state_dict(self, old_state_dict())
