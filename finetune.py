@@ -91,9 +91,9 @@ def main(
         None,
     ], "--quantization only supports '4bit', '8bit', or None."
     assert bnb_4bit_quant_type in [
-        "fp",
-        "nf",
-    ], "--bnb_4bit_quant_type only supports 'fp' or 'np'."
+        "fp4",
+        "nf4",
+    ], "--bnb_4bit_quant_type only supports 'fp4' or 'np4'."
     assert tuner in [
         "LoRA",
         "IA3",
