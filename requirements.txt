@@ -13,7 +13,7 @@ jupyter-lsp>=2.0.0
 loralib>=0.1.1
 numpy>=1.15.0
 packaging>=14.3
-peft @ git+https://github.com/huggingface/peft.git@39ef2546d5d9b8f5f8a7016ec10657887a867041
+peft
 protobuf>=4.21.6
 scipy>=1.10.1
 sentencepiece>=0.1.99
