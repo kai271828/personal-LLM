@@ -22,7 +22,7 @@ from transformers import (
     AutoTokenizer,
     LlamaTokenizer,
     AutoModelForCausalLM,
-    LlamaModelForCausalLM,
+    LlamaForCausalLM,
     BitsAndBytesConfig,
     TrainingArguments,
     Trainer,
@@ -216,7 +216,7 @@ def main(
     )
 
     if "llama" in base_model:
-        model = LlamaModelForCausalLM.from_pretrained(
+        model = LlamaForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
             torch_dtype="auto",
