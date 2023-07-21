@@ -61,10 +61,7 @@ def main(
     lora_r: int = 8,
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
-    lora_target_modules: List[str] = [
-        "q_proj",
-        "v_proj",
-    ],
+    lora_target_modules: List[str] = None,
     # ia3 hyperparameters
     # prompt tuning hyperparameters
     # prefix tuning hyperparameters
@@ -114,6 +111,16 @@ def main(
 
     if quantization:
         assert tuner, "Training quantized weights directly is not supported."
+
+    if lora_target_modules is None and tuner == "LoRA":
+        if "mt" in base_model:
+            lora_target_modules = ["q", "v"]
+        elif "bloom" in base_model:
+            lora_target_modules = ["query_key_value"]
+        elif "llama" in base_model:
+            lora_target_modules = ["q_proj", "v_proj"]
+        elif "falcon" in base_model:
+            lora_target_modules = ["query_key_value"]
 
     # Print trainging information
     # TODO: show the parameters set
