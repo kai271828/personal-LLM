@@ -47,7 +47,7 @@ def main(
     micro_batch_size: int = 4,
     num_epochs: int = 3,
     learning_rate: float = 3e-4,
-    cutoff_len: int = 256,
+    cutoff_len: int = 512,
     val_set_size: int = 2000,
     use_fp16: bool = False,
     use_bf16: bool = False,
@@ -219,7 +219,7 @@ def main(
         model = LlamaForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype="auto",  # may be bug
+            # torch_dtype="auto",  # may be bug
             cache_dir=cache_dir,
             device_map=device_map,
         )
@@ -227,7 +227,7 @@ def main(
         model = AutoModelForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
-            torch_dtype="auto",  # may be bug
+            # torch_dtype="auto",  # may be bug
             cache_dir=cache_dir,
             device_map=device_map,
         )
