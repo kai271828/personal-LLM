@@ -42,12 +42,25 @@ def main(
     bnb_4bit_quant_type: str = "fp4",
     # peft parameters
     tuner: str = None,
+    # lora hyperparameters
+    lora_r: int = 8,
+    lora_alpha: int = 16,
+    lora_dropout: float = 0.05,
+    lora_target_modules: List[str] = None,
+    # ia3 hyperparameters
+    ia3_target_modules: List[str] = None,
+    ia3_feedforward_modules: List[str] = None,
+    # prompt tuning hyperparameters
+    # prefix tuning hyperparameters
+    # p-tuning hyperparameters
+    # llm hyperparameters
+    add_eos_token: bool = True,
     # training hyperparams
     batch_size: int = 128,
     micro_batch_size: int = 4,
     num_epochs: int = 3,
     learning_rate: float = 3e-4,
-    cutoff_len: int = 512,
+    cutoff_len: int = 256,
     val_set_size: int = 2000,
     use_fp16: bool = False,
     use_bf16: bool = False,
@@ -57,17 +70,6 @@ def main(
     gradient_checkpointing: bool = False,
     group_by_length: bool = False,
     optim: str = "adamw_torch",
-    # lora hyperparameters
-    lora_r: int = 8,
-    lora_alpha: int = 16,
-    lora_dropout: float = 0.05,
-    lora_target_modules: List[str] = None,
-    # ia3 hyperparameters
-    # prompt tuning hyperparameters
-    # prefix tuning hyperparameters
-    # p-tuning hyperparameters
-    # llm hyperparameters
-    add_eos_token: bool = True,
     # wandb params
     # use_wandb: bool = False,
     # wandb_project: str = "",
@@ -121,6 +123,26 @@ def main(
             lora_target_modules = ["q_proj", "v_proj"]
         elif "falcon" in base_model:
             lora_target_modules = ["query_key_value"]
+
+    if ia3_target_modules is None and tuner == "IA3":
+        if "mt" in base_model:
+            ia3_target_modules = ["k", "v", "wi_1"]
+        elif "bloom" in base_model:
+            ia3_target_modules = ["query_key_value", "mlp.dense_4h_to_h"]
+        elif "llama" in base_model:
+            ia3_target_modules = ["k_proj", "v_proj", "down_proj"]
+        elif "falcon" in base_model:
+            ia3_target_modules = ["query_key_value"]
+
+    if ia3_feedforward_modules is None and tuner == "IA3":
+        if "mt" in base_model:
+            ia3_feedforward_modules = []
+        elif "bloom" in base_model:
+            ia3_feedforward_modules = ["mlp.dense_4h_to_h"]
+        elif "llama" in base_model:
+            ia3_feedforward_modules = ["down_proj"]
+        elif "falcon" in base_model:
+            ia3_feedforward_modules = ["query_key_value"]
 
     # Print trainging information
     # TODO: show the parameters set
@@ -219,7 +241,6 @@ def main(
         if quantization == "4bit" and nested_quant
         else False,
         bnb_4bit_quant_type=bnb_4bit_quant_type,
-        bnb_4bit_compute_dtype=torch.bfloat16,
     )
 
     if "llama" in base_model:
@@ -239,6 +260,9 @@ def main(
             device_map=device_map,
         )
 
+    if not (use_fp16 or use_bf16):
+        model.half()
+
     if quantization and tuner:
         model = prepare_model_for_kbit_training(model)
 
@@ -253,7 +277,11 @@ def main(
             task_type="CAUSAL_LM",
         )
     elif tuner == "IA3":
-        raise NotImplementedError
+        peft_config = IA3Config(
+            target_modules=ia3_target_modules,
+            feedforward_modules=ia3_feedforward_modules,
+            task_type="CAUSAL_LM",
+        )
     elif tuner == "Prompt":
         raise NotImplementedError
     elif tuner == "Prefix":
