@@ -40,7 +40,6 @@ def main(
     quantization: Union[str, None] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
-    local_rank: int = 0,
     # peft parameters
     tuner: Union[str, None] = None,
     # lora hyperparameters
@@ -81,6 +80,7 @@ def main(
         str, None
     ] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
+    local_rank: int = 0,
 ):
     # Check hyperparameters
     # TODO: add the parameters and their checking if needed

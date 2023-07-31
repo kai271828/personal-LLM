@@ -1,2 +1,3 @@
 utils/__pycache__
 .vscode
+data/train_zhtw.json
