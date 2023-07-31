@@ -1,7 +1,7 @@
 # TODO: add required libraries
 import os
 import sys
-from typing import List
+from typing import List, Union
 
 import fire
 import torch
@@ -37,19 +37,19 @@ def main(
     data_path: str = "",  # required argument
     output_dir: str = "./outputs",
     cache_dir: str = "./cache",
-    quantization: str = None,
+    quantization: Union[str, None] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
     # peft parameters
-    tuner: str = None,
+    tuner: Union[str, None] = None,
     # lora hyperparameters
     lora_r: int = 8,
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
-    lora_target_modules: List[str] = None,
+    lora_target_modules: Union[List[str], None] = None,
     # ia3 hyperparameters
-    ia3_target_modules: List[str] = None,
-    ia3_feedforward_modules: List[str] = None,
+    ia3_target_modules: Union[List[str], None] = None,
+    ia3_feedforward_modules: Union[List[str], None] = None,
     # prompt tuning hyperparameters
     # prefix tuning hyperparameters
     # p-tuning hyperparameters
@@ -76,7 +76,9 @@ def main(
     # wandb_run_name: str = "",
     # wandb_watch: str = "",  # options: false | gradients | all
     # wandb_log_model: str = "",  # options: false | true
-    resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
+    resume_from_checkpoint: Union[
+        str, None
+    ] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
 ):
     # Check hyperparameters
