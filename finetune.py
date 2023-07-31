@@ -119,10 +119,10 @@ def main(
         assert tuner, "Training quantized weights directly is not supported."
 
     if lora_target_modules is None and tuner == "LoRA":
-        if "mt" in base_model:
-            lora_target_modules = ["q", "v"]
-        elif "bloom" in base_model:
+        if "bloom" in base_model:
             lora_target_modules = ["query_key_value"]
+        elif "mt" in base_model:
+            lora_target_modules = ["q", "v"]
         elif "llama" in base_model:
             lora_target_modules = ["q_proj", "v_proj"]
         elif "falcon" in base_model:
