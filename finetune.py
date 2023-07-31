@@ -40,6 +40,7 @@ def main(
     quantization: Union[str, None] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
+    deepspeed: Union[str, None] = None,
     # peft parameters
     tuner: Union[str, None] = None,
     # lora hyperparameters
@@ -346,6 +347,7 @@ def main(
         group_by_length=group_by_length,
         report_to=None,  # "wandb" if use_wandb else None,
         run_name=None,  # wandb_run_name if use_wandb else None,
+        deepspeed=deepspeed,
     )
 
     data_collator = transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False)
