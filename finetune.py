@@ -40,6 +40,7 @@ def main(
     quantization: Union[str, None] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
+    local_rank: int = 0,
     # peft parameters
     tuner: Union[str, None] = None,
     # lora hyperparameters
