@@ -40,6 +40,7 @@ def main(
     quantization: Union[str, None] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
+    bnb_4bit_compute_dtype: str = "float32",
     deepspeed: Union[str, None] = None,
     # peft parameters
     tuner: Union[str, None] = None,
@@ -97,6 +98,11 @@ def main(
         "fp4",
         "nf4",
     ], "--bnb_4bit_quant_type only supports 'fp4' or 'np4'."
+    assert bnb_4bit_compute_dtype in [
+        "float32",
+        "float16",
+        "bfloat16",
+    ], "--bnb_4bit_compute_dtype only supports 'float32', 'float16', or 'bfloat16'"
     assert tuner in [
         "LoRA",
         "IA3",
