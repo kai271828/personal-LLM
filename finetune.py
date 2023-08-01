@@ -271,7 +271,7 @@ def main(
             device_map=device_map,
         )
 
-    if not (use_fp16 or use_bf16):
+    if not (use_fp16 or use_bf16 or quantization):
         model.half()
 
     if quantization and tuner:
