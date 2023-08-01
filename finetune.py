@@ -273,6 +273,7 @@ def main(
 
     if not (use_fp16 or use_bf16 or quantization):
         model.half()
+        print("cast model to half.")
 
     if quantization and tuner:
         model = prepare_model_for_kbit_training(model)
@@ -301,6 +302,7 @@ def main(
         raise NotImplementedError
 
     if tuner:
+        model.enable_input_require_grads()
         model = get_peft_model(model, peft_config)
 
     # TODO: review resume function
