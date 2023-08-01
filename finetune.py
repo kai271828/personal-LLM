@@ -145,10 +145,10 @@ def main(
             ia3_target_modules = ["query_key_value"]
 
     if ia3_feedforward_modules is None and tuner == "IA3":
-        if "mt" in base_model:
-            ia3_feedforward_modules = []
-        elif "bloom" in base_model:
+        if "bloom" in base_model:
             ia3_feedforward_modules = ["mlp.dense_4h_to_h"]
+        elif "mt" in base_model:
+            ia3_feedforward_modules = []
         elif "llama" in base_model:
             ia3_feedforward_modules = ["down_proj"]
         elif "falcon" in base_model:
