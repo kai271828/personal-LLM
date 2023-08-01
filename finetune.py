@@ -251,6 +251,7 @@ def main(
         if quantization == "4bit" and nested_quant
         else False,
         bnb_4bit_quant_type=bnb_4bit_quant_type,
+        bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
     )
 
     if "llama" in base_model:
