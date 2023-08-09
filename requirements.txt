@@ -5,6 +5,7 @@ black>=23.3.0
 black[jupyter]
 cupy-cuda11x>=12.0.0
 datasets>=2.13.1
+einops
 fire>=0.5.0
 gradio>=3.35.2
 gradio_client>=0.2.7
