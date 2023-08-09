@@ -9,6 +9,7 @@ import transformers
 from datasets import load_dataset
 from peft import (
     LoraConfig,
+    AdaLoraConfig,
     PromptEncoderConfig,
     PrefixTuningConfig,
     PromptTuningConfig,
@@ -49,6 +50,9 @@ def main(
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
     lora_target_modules: Union[List[str], None] = None,
+    # adalora parameters
+    init_r: int = 8,
+    target_r: int = 8,
     # ia3 hyperparameters
     ia3_target_modules: Union[List[str], None] = None,
     ia3_feedforward_modules: Union[List[str], None] = None,
@@ -146,9 +150,9 @@ def main(
 
     if ia3_feedforward_modules is None and tuner == "IA3":
         if "bloom" in base_model:
-            ia3_feedforward_modules = ["mlp.dense_4h_to_h"]
+            ia3_feedforward_modules = [""]
         elif "mt" in base_model:
-            ia3_feedforward_modules = []
+            ia3_feedforward_modules = [""]
         elif "llama" in base_model:
             ia3_feedforward_modules = ["down_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
