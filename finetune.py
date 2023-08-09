@@ -112,7 +112,7 @@ def main(
     ], "--bnb_4bit_compute_dtype only supports 'float32', 'float16', or 'bfloat16'"
     assert tuner in [
         "LoRA",
-        "AdaLoRA"
+        "AdaLoRA",
         "IA3",
         "Prompt",
         "Prefix",
