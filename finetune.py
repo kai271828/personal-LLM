@@ -131,7 +131,7 @@ def main(
             lora_target_modules = ["q", "v"]
         elif "llama" in base_model:
             lora_target_modules = ["q_proj", "v_proj"]
-        elif "falcon" in base_model:
+        elif "Falcon" in base_model or "falcon" in base_model:
             lora_target_modules = ["query_key_value"]
 
     if ia3_target_modules is None and tuner == "IA3":
@@ -141,7 +141,7 @@ def main(
             ia3_target_modules = ["k", "v", "wi_1"]
         elif "llama" in base_model:
             ia3_target_modules = ["k_proj", "v_proj", "down_proj"]
-        elif "falcon" in base_model:
+        elif "Falcon" in base_model or "falcon" in base_model:
             ia3_target_modules = ["query_key_value"]
 
     if ia3_feedforward_modules is None and tuner == "IA3":
@@ -151,7 +151,7 @@ def main(
             ia3_feedforward_modules = []
         elif "llama" in base_model:
             ia3_feedforward_modules = ["down_proj"]
-        elif "falcon" in base_model:
+        elif "Falcon" in base_model or "falcon" in base_model:
             ia3_feedforward_modules = ["query_key_value"]
 
     # Print trainging information
@@ -270,6 +270,7 @@ def main(
             # torch_dtype="auto",  # may be bug
             cache_dir=cache_dir,
             device_map=device_map,
+            trust_remote_code=True,
         )
 
     if not (use_fp16 or use_bf16 or quantization):
