@@ -310,7 +310,6 @@ def main(
             task_type="CAUSAL_LM",
         )
     elif tuner == "AdaLoRA":
-        print(adalora_target_moduels)
         peft_config = AdaLoraConfig(
             init_r=init_r,
             target_r=target_r,
@@ -319,7 +318,6 @@ def main(
             lora_dropout=lora_dropout,
             task_type="CAUSAL_LM",
         )
-        print(peft_config.target_modules)
     elif tuner == "IA3":
         peft_config = IA3Config(
             peft_type="IA3",
