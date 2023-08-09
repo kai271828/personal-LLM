@@ -379,6 +379,7 @@ def main(
 
     if torch.__version__ >= "2" and sys.platform != "win32":
         model = torch.compile(model)
+        print("perform torch compile.")
 
     trainer.train()
 
