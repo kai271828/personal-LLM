@@ -51,8 +51,9 @@ def main(
     lora_dropout: float = 0.05,
     lora_target_modules: Union[List[str], None] = None,
     # adalora parameters
-    init_r: int = 8,
     target_r: int = 8,
+    init_r: int = 12,
+    adalora_target_moduels: Union[List[str], None] = None,
     # ia3 hyperparameters
     ia3_target_modules: Union[List[str], None] = None,
     ia3_feedforward_modules: Union[List[str], None] = None,
@@ -109,12 +110,13 @@ def main(
     ], "--bnb_4bit_compute_dtype only supports 'float32', 'float16', or 'bfloat16'"
     assert tuner in [
         "LoRA",
+        "AdaLoRA"
         "IA3",
         "Prompt",
         "Prefix",
         "P-tuning",
         None,
-    ], "--tuner only supprts 'LoRA', 'IA3', 'Prompt', 'Prefix', or 'P-tuning', or None."
+    ], "--tuner only supprts 'LoRA', 'AdaLoRA', 'IA3', 'Prompt', 'Prefix', or 'P-tuning', or None."
     assert prompt_template_name in [
         None,
         "instruction",
@@ -137,6 +139,16 @@ def main(
             lora_target_modules = ["q_proj", "v_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             lora_target_modules = ["query_key_value"]
+            
+    if adalora_target_moduels is None and tuner == "AdaLoRA":
+        if "bloom" in base_model:
+            adalora_target_moduelslora_target_modules = ["query_key_value"]
+        elif "mt" in base_model:
+            adalora_target_moduelslora_target_modules = ["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
+        elif "llama" in base_model:
+            adalora_target_moduelslora_target_modules = ["q_proj", "v_proj"]
+        elif "Falcon" in base_model or "falcon" in base_model:
+            adalora_target_moduelslora_target_modules = ["query_key_value"]
 
     if ia3_target_modules is None and tuner == "IA3":
         if "bloom" in base_model:
@@ -289,9 +301,18 @@ def main(
         peft_config = LoraConfig(
             r=lora_r,
             lora_alpha=lora_alpha,
-            target_modules=lora_target_modules,
             lora_dropout=lora_dropout,
+            target_modules=lora_target_modules,
             bias="none",
+            task_type="CAUSAL_LM",
+        )
+    elif tuner == "AdaLoRA":
+        peft_config = AdaLoraConfig(
+            init_r=init_r,
+            target_r=target_r,
+            target_modules=adalora_target_moduels,
+            lora_alpha=lora_alpha,
+            lora_dropout=lora_dropout,
             task_type="CAUSAL_LM",
         )
     elif tuner == "IA3":
