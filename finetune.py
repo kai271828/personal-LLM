@@ -145,13 +145,13 @@ def main(
             
     if adalora_target_moduels is None and tuner == "AdaLoRA":
         if "bloom" in base_model:
-            adalora_target_moduelslora_target_modules = ["query_key_value"]
+            adalora_target_moduels = ["query_key_value"]
         elif "mt" in base_model:
-            adalora_target_moduelslora_target_modules = ["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
+            adalora_target_moduels = ["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
         elif "llama" in base_model:
-            adalora_target_moduelslora_target_modules = ["q_proj", "v_proj"]
+            adalora_target_moduels = ["q_proj", "v_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
-            adalora_target_moduelslora_target_modules = ["query_key_value"]
+            adalora_target_moduels = ["query_key_value"]
 
     if ia3_target_modules is None and tuner == "IA3":
         if "bloom" in base_model:
