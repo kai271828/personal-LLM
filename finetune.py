@@ -6,6 +6,7 @@ from typing import List, Union
 import fire
 import torch
 import transformers
+import bitsandbytes as bnb
 from datasets import load_dataset
 from peft import (
     LoraConfig,
@@ -317,6 +318,7 @@ def main(
             lora_dropout=lora_dropout,
             task_type="CAUSAL_LM",
         )
+        print(peft_config)
     elif tuner == "IA3":
         peft_config = IA3Config(
             peft_type="IA3",
@@ -362,6 +364,9 @@ def main(
     if not ddp and torch.cuda.device_count() > 1:
         model.is_parallelizable = True
         model.model_parallel = True
+
+    if optim == "adam_8bit":
+        optim = bnb.optim.Adam8bit
 
     # Trainer setting
     training_args = TrainingArguments(
