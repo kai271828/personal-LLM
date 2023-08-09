@@ -136,7 +136,7 @@ def main(
 
     if ia3_target_modules is None and tuner == "IA3":
         if "bloom" in base_model:
-            ia3_target_modules = ["query_key_value"] #, "mlp.dense_4h_to_h"
+            ia3_target_modules = ["query_key_value", "mlp.dense_4h_to_h"]
         elif "mt" in base_model:
             ia3_target_modules = ["k", "v", "wi_1"]
         elif "llama" in base_model:
@@ -146,7 +146,7 @@ def main(
 
     if ia3_feedforward_modules is None and tuner == "IA3":
         if "bloom" in base_model:
-            ia3_feedforward_modules = ["mlp.dense_4h_to_h"]
+            ia3_feedforward_modules = [] # ["mlp.dense_4h_to_h"]
         elif "mt" in base_model:
             ia3_feedforward_modules = []
         elif "llama" in base_model:
