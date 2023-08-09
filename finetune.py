@@ -191,7 +191,7 @@ def main(
         )
     else:
         tokenizer = AutoTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
-        if "falcon" in base_model:
+        if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
 
     tokenizer.padding_side = "left"  # Allow batched inference
