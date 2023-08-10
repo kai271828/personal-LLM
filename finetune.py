@@ -73,6 +73,7 @@ def main(
     val_set_size: int = 2000,
     use_fp16: bool = False,
     use_bf16: bool = False,
+    use_tf32: bool = False,
     logging_steps: int = 10,
     eval_steps: int = 200,
     save_steps: int = 200,
@@ -142,7 +143,7 @@ def main(
             lora_target_modules = ["q_proj", "v_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             lora_target_modules = ["query_key_value"]
-            
+
     if adalora_target_moduels is None and tuner == "AdaLoRA":
         if "bloom" in base_model:
             adalora_target_moduels = ["query_key_value"]
@@ -364,8 +365,8 @@ def main(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    if optim == "adam_8bit":
-        optim = bnb.optim.Adam8bit
+    if use_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
 
     # Trainer setting
     training_args = TrainingArguments(
@@ -377,6 +378,7 @@ def main(
         learning_rate=learning_rate,
         fp16=use_fp16,
         bf16=use_bf16,
+        tf32=use_tf32,
         logging_steps=logging_steps,
         optim=optim,
         evaluation_strategy="steps" if val_set_size > 0 else "no",
