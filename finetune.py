@@ -35,7 +35,7 @@ from utils.prompter import Prompter
 
 def main(
     # model/data parameters
-    base_model: str = "bigscience/bloomz-560m",  # default model
+    base_model: str = "",  # required argument
     data_path: str = "",  # required argument
     output_dir: str = "./outputs",
     cache_dir: str = "./cache",
@@ -95,6 +95,9 @@ def main(
 ):
     # Check hyperparameters
     # TODO: add the parameters and their checking if needed
+    assert (
+        base_model
+    ), "Please specify a --base_model, e.g. --base_model='bigscience/bloomz-560m'"
     assert (
         data_path
     ), "Please specify a --data_path, e.g. --data_path='./data/train.json'"
@@ -194,8 +197,6 @@ def main(
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     if report_to == "wandb":
-        import wandb
-
         if len(wandb_project) > 0:
             os.environ["WANDB_PROJECT"] = wandb_project
         if len(wandb_watch) > 0:
@@ -426,9 +427,6 @@ def main(
     trainer.train()
 
     if tuner:
-        torch.save(
-            trainer.model.state_dict(), f"{output_dir}/torch_save_adapter_model.bin"
-        )
         model.save_pretrained(output_dir, state_dict=model.state_dict())
     else:
         model.save_pretrained(output_dir)
