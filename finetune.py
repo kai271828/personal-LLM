@@ -4,7 +4,6 @@ import sys
 from typing import List, Union
 
 import fire
-import wandb
 import torch
 import transformers
 import bitsandbytes as bnb
@@ -195,6 +194,8 @@ def main(
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     if report_to == "wandb":
+        import wandb
+
         if len(wandb_project) > 0:
             os.environ["WANDB_PROJECT"] = wandb_project
         if len(wandb_watch) > 0:
@@ -425,7 +426,9 @@ def main(
     trainer.train()
 
     if tuner:
-        torch.save(trainer.model.state_dict(), f"{output_dir}/adapter_model.bin")
+        torch.save(
+            trainer.model.state_dict(), f"{output_dir}/torch_save_adapter_model.bin"
+        )
         model.save_pretrained(output_dir, state_dict=model.state_dict)
     else:
         model.save_pretrained(output_dir)
