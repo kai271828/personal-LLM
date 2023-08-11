@@ -83,9 +83,9 @@ def main(
     group_by_length: bool = False,
     optim: str = "adamw_torch",
     # wandb params
-    use_wandb: bool = False,
+    report_to: Union[None, str] = None,
+    run_name: Union[None, str] = None,
     wandb_project: str = "",
-    wandb_run_name: str = "",
     wandb_watch: str = "all",  # options: false | gradients | all
     wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: Union[
@@ -131,6 +131,11 @@ def main(
         "adamw_hf",
         "adafactor",
     ], "--optim only support 'adamw_torch', 'adamw_hf', or 'adafactor' now."
+    assert report_to in [
+        "tensorboard",
+        "wandb",
+        None,
+    ], "--report_to only supports 'tensorboard', 'wandb', None."
 
     if quantization:
         assert tuner, "Training quantized weights directly is not supported."
@@ -189,7 +194,7 @@ def main(
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
-    if use_wandb:
+    if report_to == "wandb":
         if len(wandb_project) > 0:
             os.environ["WANDB_PROJECT"] = wandb_project
         if len(wandb_watch) > 0:
@@ -390,8 +395,8 @@ def main(
         load_best_model_at_end=True if val_set_size > 0 else False,
         ddp_find_unused_parameters=False if ddp else None,
         group_by_length=group_by_length,
-        report_to="wandb" if use_wandb else None,
-        run_name=wandb_run_name if use_wandb else None,
+        report_to=report_to,
+        run_name=run_name,
         deepspeed=deepspeed,
     )
 
@@ -421,6 +426,7 @@ def main(
 
     if tuner:
         torch.save(trainer.model.state_dict(), f"{output_dir}/adapter_model.bin")
+        model.save_pretrained(output_dir, state_dict=model.state_dict)
     else:
         model.save_pretrained(output_dir)
 
