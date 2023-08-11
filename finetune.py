@@ -4,6 +4,7 @@ import sys
 from typing import List, Union
 
 import fire
+import wandb
 import torch
 import transformers
 import bitsandbytes as bnb
@@ -82,11 +83,11 @@ def main(
     group_by_length: bool = False,
     optim: str = "adamw_torch",
     # wandb params
-    # use_wandb: bool = False,
-    # wandb_project: str = "",
-    # wandb_run_name: str = "",
-    # wandb_watch: str = "",  # options: false | gradients | all
-    # wandb_log_model: str = "",  # options: false | true
+    use_wandb: bool = False,
+    wandb_project: str = "",
+    wandb_run_name: str = "",
+    wandb_watch: str = "all",  # options: false | gradients | all
+    wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: Union[
         str, None
     ] = None,  # either training checkpoint or final adapter
@@ -188,14 +189,13 @@ def main(
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
-    # # Only overwrite environ if wandb param passed
-    # if use_wandb:
-    #     if len(wandb_project) > 0:
-    #         os.environ["WANDB_PROJECT"] = wandb_project
-    #     if len(wandb_watch) > 0:
-    #         os.environ["WANDB_WATCH"] = wandb_watch
-    #     if len(wandb_log_model) > 0:
-    #         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
+    if use_wandb:
+        if len(wandb_project) > 0:
+            os.environ["WANDB_PROJECT"] = wandb_project
+        if len(wandb_watch) > 0:
+            os.environ["WANDB_WATCH"] = wandb_watch
+        if len(wandb_log_model) > 0:
+            os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
     # Load the data
     if data_path.endswith(".json") or data_path.endswith(".jsonl"):
@@ -390,8 +390,8 @@ def main(
         load_best_model_at_end=True if val_set_size > 0 else False,
         ddp_find_unused_parameters=False if ddp else None,
         group_by_length=group_by_length,
-        report_to=None,  # "wandb" if use_wandb else None,
-        run_name=None,  # wandb_run_name if use_wandb else None,
+        report_to="wandb" if use_wandb else None,
+        run_name=wandb_run_name if use_wandb else None,
         deepspeed=deepspeed,
     )
 
@@ -419,7 +419,10 @@ def main(
 
     trainer.train()
 
-    model.save_pretrained(output_dir)
+    if tuner:
+        torch.save(trainer.model.state_dict(), f"{output_dir}/adapter_model.bin")
+    else:
+        model.save_pretrained(output_dir)
 
     print("\n If there's a warning about missing keys above, please disregard :)")
 
