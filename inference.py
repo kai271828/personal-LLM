@@ -14,7 +14,7 @@ from transformers import (
     GenerationConfig,
 )
 
-from utils import Prompter
+from utils.prompter import Prompter
 
 
 def main(
