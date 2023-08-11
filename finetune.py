@@ -421,7 +421,7 @@ def main(
 
     if torch.__version__ >= "2" and sys.platform != "win32":
         model = torch.compile(model)
-        print("perform torch compile.")
+        print("perform torch.compile.")
 
     trainer.train()
 
@@ -429,7 +429,7 @@ def main(
         torch.save(
             trainer.model.state_dict(), f"{output_dir}/torch_save_adapter_model.bin"
         )
-        model.save_pretrained(output_dir, state_dict=model.state_dict)
+        model.save_pretrained(output_dir, state_dict=model.state_dict())
     else:
         model.save_pretrained(output_dir)
 
