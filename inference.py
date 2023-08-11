@@ -4,7 +4,6 @@ from typing import Union
 
 import fire
 import torch
-import transformers
 from peft import PeftModel
 from transformers import (
     AutoTokenizer,
