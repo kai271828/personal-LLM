@@ -45,7 +45,7 @@ class Prompter(object):
         if label:
             prompt = f"{prompt}{label}"
 
-        prompt = f"{prompt}{self.tokenizer.eos_token}"
+        # prompt = f"{prompt}{self.tokenizer.eos_token}"
         if self._verbose:
             print(prompt)
         return prompt
