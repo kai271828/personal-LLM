@@ -146,7 +146,7 @@ def main(
             lora_target_modules = ["query_key_value"]
         elif "mt" in base_model:
             lora_target_modules = ["q", "v"]
-        elif "llama" in base_model:
+        elif "llama" in base_model or "alpaca" in base_model:
             lora_target_modules = ["q_proj", "v_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             lora_target_modules = ["query_key_value"]
@@ -156,7 +156,7 @@ def main(
             adalora_target_moduels = ["query_key_value"]
         elif "mt" in base_model:
             adalora_target_moduels = ["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
-        elif "llama" in base_model:
+        elif "llama" in base_model or "alpaca" in base_model:
             adalora_target_moduels = ["q_proj", "v_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             adalora_target_moduels = ["query_key_value"]
@@ -166,7 +166,7 @@ def main(
             ia3_target_modules = ["query_key_value", "mlp.dense_4h_to_h"]
         elif "mt" in base_model:
             ia3_target_modules = ["k", "v", "wi_1"]
-        elif "llama" in base_model:
+        elif "llama" in base_model or "alpaca" in base_model:
             ia3_target_modules = ["k_proj", "v_proj", "down_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             ia3_target_modules = ["query_key_value"]
@@ -176,7 +176,7 @@ def main(
             ia3_feedforward_modules = [""]
         elif "mt" in base_model:
             ia3_feedforward_modules = [""]
-        elif "llama" in base_model:
+        elif "llama" in base_model or "alpaca" in base_model:
             ia3_feedforward_modules = ["down_proj"]
         elif "Falcon" in base_model or "falcon" in base_model:
             ia3_feedforward_modules = ["query_key_value"]
@@ -210,7 +210,7 @@ def main(
         data = load_dataset(data_path)
 
     # Prepare tokenizer
-    if "llama" in base_model:
+    if "llama" in base_model or "alpaca" in base_model:
         tokenizer = LlamaTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
         if tokenizer.pad_token is None:
             tokenizer.pad_token_id = (
@@ -280,7 +280,7 @@ def main(
         bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
     )
 
-    if "llama" in base_model:
+    if "llama" in base_model or "alpaca" in base_model:
         model = LlamaForCausalLM.from_pretrained(
             base_model,
             quantization_config=bnb_config,
