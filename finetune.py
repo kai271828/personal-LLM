@@ -6,7 +6,6 @@ from typing import List, Union
 import fire
 import torch
 import transformers
-import bitsandbytes as bnb
 from datasets import load_dataset
 from peft import (
     LoraConfig,
@@ -213,9 +212,10 @@ def main(
     # Prepare tokenizer
     if "llama" in base_model:
         tokenizer = LlamaTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
-        tokenizer.pad_token_id = (
-            0  # unk. we want this to be different from the eos token
-        )
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token_id = (
+                0  # unk. we want this to be different from the eos token
+            )
     else:
         tokenizer = AutoTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
         if tokenizer.pad_token is None:
@@ -275,9 +275,7 @@ def main(
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True if quantization == "4bit" else False,
         load_in_8bit=True if quantization == "8bit" else False,
-        bnb_4bit_use_double_quant=True
-        if quantization == "4bit" and nested_quant
-        else False,
+        bnb_4bit_use_double_quant=nested_quant,
         bnb_4bit_quant_type=bnb_4bit_quant_type,
         bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
     )
