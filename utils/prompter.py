@@ -12,14 +12,12 @@ class Prompter(object):
 
     def __init__(
         self,
-        tokenizer,
-        cutoff_len,
         template_name: str = "instruction",
         verbose: bool = False,
     ):
-        self.tokenizer = tokenizer
+        # self.tokenizer = tokenizer
         self._verbose = verbose
-        self.cutoff_len = cutoff_len
+        # self.cutoff_len = cutoff_len
         file_name = os.path.join("templates", f"{template_name}.json")
         if not os.path.exists(file_name):
             raise ValueError(f"Can't read {file_name}")
