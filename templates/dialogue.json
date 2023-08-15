@@ -1,5 +1,5 @@
 {
     "description": "Dialogue Template",
-    "input": "### User:\n{input}\n\n### Bot:\n",
-    "response_split": "### Bot:"
+    "prompt": "### Human: {input}\n\n### Assistant: ",
+    "response_split": "### Assistant: "
 }
