@@ -8,15 +8,13 @@ from typing import Union, List
 
 
 class Prompter(object):
-    __slots__ = ("template", "data_columns", "_verbose")
+    __slots__ = ("template", "_verbose")
 
     def __init__(
         self,
         template_name: str = "system_prompt",
-        data_columns: List[str] = ["prompt"],
         verbose: bool = False,
     ):
-        self.data_columns = data_columns
         self._verbose = verbose
         file_name = os.path.join("templates", f"{template_name}.json")
         if not os.path.exists(file_name):
@@ -34,7 +32,7 @@ class Prompter(object):
         label: str,
     ) -> str:
         data_sample = self.template["prompt"].format(input=input) + label
-
+        
         if self._verbose:
             print(data_sample)
         return data_sample
@@ -60,12 +58,11 @@ class InstructionPrompter(Prompter):
     def __init__(
         self,
         template_name: str = "instruction",
-        data_columns: List[str] = ["prompt", "input"],
         verbose: bool = False,
     ):
-        super().__init__(template_name, data_columns, verbose)
+        super().__init__(template_name, verbose)
 
-    def generate_prompt(
+    def generate_training_sample(
         self,
         instruction: str,
         input: Union[None, str] = None,
