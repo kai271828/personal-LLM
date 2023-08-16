@@ -30,7 +30,7 @@ from transformers import (
 )
 
 from utils.prompter import Prompter, InstructionPrompter
-from utils.preprocessing import get_mapping
+from utils.preprocessing import get_preprocessor
 
 
 def main(
@@ -91,6 +91,8 @@ def main(
         str, None
     ] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
+    data_columns: List[str] = ["instruction", "input", "output"],
+    train_on_whole_sample: bool = False,
     local_rank: int = 0,
 ):
     # Check hyperparameters
@@ -225,20 +227,27 @@ def main(
     tokenizer.padding_side = "left"  # Allow batched inference
 
     # Process the data
-    # TODO: examine the processing and complete it
     if prompt_template_name == "instruction":
         prompter = InstructionPrompter(prompt_template_name)
     else:
         prompter = Prompter(prompt_template_name)
 
+    preprocessor = get_preprocessor(
+        data_columns=data_columns,
+        prompter=prompter, 
+        tokenizer=tokenizer, 
+        cutoff_len=cutoff_len, 
+        train_on_whole_sample=train_on_whole_sample
+    )
+
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
             test_size=val_set_size, shuffle=True, seed=9527
         )
-        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = train_val["train"].shuffle().map(preprocessor, remove_columns=train_val["train"].column_names)
+        val_data = train_val["test"].shuffle().map(preprocessor, remove_columns=train_val["test"].column_names)
     else:
-        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = data["train"].shuffle().map(preprocessor, remove_columns=data["train"].column_names)
         val_data = None
 
     # Prepare model
