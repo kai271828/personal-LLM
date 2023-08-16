@@ -246,7 +246,8 @@ def main(
         )
         train_data = train_val["train"].shuffle().map(preprocessor, remove_columns=train_val["train"].column_names)
         val_data = train_val["test"].shuffle().map(preprocessor, remove_columns=train_val["test"].column_names)
-        print(val_data[0])
+        print("input_ids len: ", len(val_data[0]["input_ids"]))
+        print("labels len: ", len(val_data[0]["labels"]))
     else:
         train_data = data["train"].shuffle().map(preprocessor, remove_columns=data["train"].column_names)
         val_data = None
