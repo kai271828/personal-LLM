@@ -381,7 +381,7 @@ def main(
         deepspeed=deepspeed,
     )
 
-    data_collator = transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False)
+    data_collator = transformers.DataCollatorWithPadding(tokenizer)
 
     trainer = Trainer(
         model=model,

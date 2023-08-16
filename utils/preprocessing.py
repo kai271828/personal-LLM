@@ -13,7 +13,7 @@ def get_preprocessor(
 
         if not train_on_whole_sample:
             user_prompt = prompter.get_user_prompt(full_sample)
-            len_user_tokens = len(tokenizer(user_prompt)["input_ids"])
+            len_user_tokens = len(tokenizer(user_prompt, truncation=True, max_length=cutoff_len - 1, padding=False)["input_ids"])
 
             full_tokens["labels"] = [-100] * len_user_tokens + full_tokens["labels"][len_user_tokens:]
 
