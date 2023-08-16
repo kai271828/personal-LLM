@@ -1,4 +1,3 @@
-# TODO: add required libraries
 import os
 import sys
 from typing import List, Union, Optional
@@ -71,6 +70,7 @@ def main(
     warmup_steps: int = 100,
     learning_rate: float = 3e-4,
     cutoff_len: int = 512,
+    train_set_size: Optional[str] = None,
     val_set_size: int = 2000,
     use_fp16: bool = False,
     use_bf16: bool = False,
@@ -94,7 +94,6 @@ def main(
     local_rank: int = 0,
 ):
     # Check hyperparameters
-    # TODO: add the parameters and their checking if needed
     assert (
         base_model
     ), "Please specify a --base_model, e.g. --base_model='bigscience/bloomz-560m'"
@@ -394,7 +393,7 @@ def main(
         print("perform torch.compile.")
         model = torch.compile(model)        
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     if tuner:
         model.save_pretrained(output_dir, state_dict=model.state_dict())
