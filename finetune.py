@@ -386,6 +386,7 @@ def main(
         args=training_args,
         train_dataset=train_data,
         eval_dataset=val_data,
+        tokenizer=tokenizer,
         data_collator=data_collator,
     )
     model.config.use_cache = False
