@@ -320,9 +320,7 @@ def main(
         model.enable_input_require_grads()
         model = get_peft_model(model, peft_config)
 
-    # TODO: review resume function
     if resume_from_checkpoint:
-        raise NotImplementedError
         # Check the available weights and load them
         checkpoint_name = os.path.join(
             resume_from_checkpoint, "pytorch_model.bin"
