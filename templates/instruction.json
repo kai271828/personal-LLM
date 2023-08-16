@@ -2,5 +2,5 @@
     "description": "Instruction Template",
     "prompt_input": "下方有一個關於任務的指令，以及一個提供任務相關資訊的輸入。請撰寫一個能恰當地完成該任務需求的回覆。\n\n### 指令:\n{instruction}\n\n### 輸入:\n{input}\n\n### 回覆:\n",
     "prompt_no_input": "下方有一個關於任務的指令。請撰寫一個能恰當地完成該任務需求的回覆。\n\n### 指令:\n{instruction}\n\n### 回覆:\n",
-    "response_split": "### 回覆:"
+    "response_split": "### 回覆:\n"
 }

@@ -4,20 +4,20 @@ A dedicated helper to manage templates and prompt building.
 
 import json
 import os
-from typing import Union
+from typing import Union, List
 
 
 class Prompter(object):
-    __slots__ = ("template", "tokenizer", "_verbose")
+    __slots__ = ("template", "data_columns", "_verbose")
 
     def __init__(
         self,
-        template_name: str = "instruction",
+        template_name: str = "system_prompt",
+        data_columns: List[str] = ["prompt"],
         verbose: bool = False,
     ):
-        # self.tokenizer = tokenizer
+        self.data_columns = data_columns
         self._verbose = verbose
-        # self.cutoff_len = cutoff_len
         file_name = os.path.join("templates", f"{template_name}.json")
         if not os.path.exists(file_name):
             raise ValueError(f"Can't read {file_name}")
@@ -28,11 +28,49 @@ class Prompter(object):
                 f"Using prompt template {template_name}: {self.template['description']}"
             )
 
+    def generate_training_sample(
+        self,
+        input: str,
+        label: str,
+    ) -> str:
+        data_sample = self.template["prompt"].format(input=input) + label
+
+        if self._verbose:
+            print(data_sample)
+        return data_sample
+
+    def get_user_prompt(self, data_sample: str) -> str:
+        if self._verbose:
+            print(
+                data_sample.split(self.template["response_split"])[0].strip()
+                + self.template["response_split"]
+            )
+        return (
+            data_sample.split(self.template["response_split"])[0].strip()
+            + self.template["response_split"]
+        )
+
+    def get_response(self, data_sample: str) -> str:
+        if self._verbose:
+            print(data_sample.split(self.template["response_split"])[1].strip())
+        return data_sample.split(self.template["response_split"])[1].strip()
+
+
+class InstructionPrompter(Prompter):
+    __slots__ = ("template", "_verbose")
+
+    def __init__(
+        self,
+        template_name: str = "instruction",
+        verbose: bool = False,
+    ):
+        super().__init__(template_name, verbose)
+
     def generate_prompt(
         self,
         instruction: str,
+        label: str,
         input: Union[None, str] = None,
-        label: Union[None, str] = None,
     ) -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
@@ -45,38 +83,6 @@ class Prompter(object):
         if label:
             prompt = f"{prompt}{label}"
 
-        # prompt = f"{prompt}{self.tokenizer.eos_token}"
         if self._verbose:
             print(prompt)
         return prompt
-
-    def get_response(self, output: str) -> str:
-        return output.split(self.template["response_split"])[1].strip()
-
-    def get_user_prompt(self, output: str) -> str:
-        return (
-            output.split(self.template["response_split"])[0].strip()
-            + "\n\n"
-            + self.template["response_split"]
-        )
-
-    def generate_and_tokenize_prompt(self, data_sample: dict) -> dict:
-        full_prompt = self.generate_prompt(
-            data_sample["instruction"],
-            data_sample["input"],
-            data_sample["output"],
-        )
-
-        user_prompt = self.get_user_prompt(full_prompt)
-
-        user_tokens_len = (
-            len(
-                self.tokenizer(
-                    user_prompt,
-                    truncation=True,
-                    max_length=self.cutoff_len,
-                    padding="max_length",
-                )["input_ids"]
-            )
-            - 1
-        )

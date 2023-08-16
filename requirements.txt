@@ -2,7 +2,6 @@ accelerate>=0.20.3
 appdirs>=1.4.4
 bitsandbytes>=0.39.1
 black>=23.3.0
-black[jupyter]
 cupy-cuda11x>=12.0.0
 datasets>=2.13.1
 einops

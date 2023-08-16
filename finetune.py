@@ -29,7 +29,8 @@ from transformers import (
     Trainer,
 )
 
-from utils.prompter import Prompter
+from utils.prompter import Prompter, InstructionPrompter
+from utils.preprocessing import get_mapping
 
 
 def main(
@@ -225,41 +226,10 @@ def main(
 
     # Process the data
     # TODO: examine the processing and complete it
-    prompter = Prompter(prompt_template_name)
-
-    def generate_and_tokenize_prompt(data_point):
-        full_prompt = prompter.generate_prompt(
-            data_point["instruction"],
-            data_point["input"],
-            data_point["output"],
-        )
-
-        user_prompt = prompter.get_user_prompt(full_prompt)
-
-        user_tokens_len = (
-            len(
-                tokenizer(
-                    user_prompt,
-                    truncation=True,
-                    max_length=cutoff_len + 1,
-                    padding="max_length",
-                )["input_ids"]
-            )
-            - 1
-        )
-
-        full_tokens = tokenizer(
-            full_prompt,
-            truncation=True,
-            max_length=cutoff_len + 1,
-            padding="max_length",
-        )["input_ids"][:-1]
-
-        return {
-            "input_ids": full_tokens,
-            "labels": [-100] * user_tokens_len + full_tokens[user_tokens_len:],
-            "attention_mask": [1] * (len(full_tokens)),
-        }
+    if prompt_template_name == "instruction":
+        prompter = InstructionPrompter(prompt_template_name)
+    else:
+        prompter = Prompter(prompt_template_name)
 
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
