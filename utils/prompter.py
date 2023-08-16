@@ -4,17 +4,19 @@ A dedicated helper to manage templates and prompt building.
 
 import json
 import os
-from typing import Union
+from typing import Union, List
 
 
 class Prompter(object):
-    __slots__ = ("template", "_verbose")
+    __slots__ = ("template", "data_columns", "_verbose")
 
     def __init__(
         self,
         template_name: str = "system_prompt",
+        data_columns: List[str] = ["prompt"],
         verbose: bool = False,
     ):
+        self.data_columns = data_columns
         self._verbose = verbose
         file_name = os.path.join("templates", f"{template_name}.json")
         if not os.path.exists(file_name):
@@ -26,38 +28,32 @@ class Prompter(object):
                 f"Using prompt template {template_name}: {self.template['description']}"
             )
 
-    def generate_prompt(
+    def generate_training_sample(
         self,
-        input: str = None,
-        label: Union[None, str] = None,
+        input: str,
+        label: str,
     ) -> str:
-        """
-        Returns the full prompt.
-        If a label (response, or output) is provided, it's also appended.
-        """
-        prompt = self.template["prompt"].format(input=input)
-        if label:
-            prompt = f"{prompt}{label}"
+        data_sample = self.template["prompt"].format(input=input) + label
 
         if self._verbose:
-            print(prompt)
-        return prompt
+            print(data_sample)
+        return data_sample
 
-    def get_user_prompt(self, output: str) -> str:
+    def get_user_prompt(self, data_sample: str) -> str:
         if self._verbose:
             print(
-                output.split(self.template["response_split"])[0].strip()
+                data_sample.split(self.template["response_split"])[0].strip()
                 + self.template["response_split"]
             )
         return (
-            output.split(self.template["response_split"])[0].strip()
+            data_sample.split(self.template["response_split"])[0].strip()
             + self.template["response_split"]
         )
 
-    def get_response(self, output: str) -> str:
+    def get_response(self, data_sample: str) -> str:
         if self._verbose:
-            print(output.split(self.template["response_split"])[1].strip())
-        return output.split(self.template["response_split"])[1].strip()
+            print(data_sample.split(self.template["response_split"])[1].strip())
+        return data_sample.split(self.template["response_split"])[1].strip()
 
 
 class InstructionPrompter(Prompter):
@@ -73,8 +69,8 @@ class InstructionPrompter(Prompter):
     def generate_prompt(
         self,
         instruction: str,
+        label: str,
         input: Union[None, str] = None,
-        label: Union[None, str] = None,
     ) -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
