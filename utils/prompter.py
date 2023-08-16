@@ -57,20 +57,19 @@ class Prompter(object):
 
 
 class InstructionPrompter(Prompter):
-    __slots__ = ("template", "_verbose")
-
     def __init__(
         self,
         template_name: str = "instruction",
+        data_columns: List[str] = ["prompt", "input"],
         verbose: bool = False,
     ):
-        super().__init__(template_name, verbose)
+        super().__init__(template_name, data_columns, verbose)
 
     def generate_prompt(
         self,
         instruction: str,
-        label: str,
         input: Union[None, str] = None,
+        label: str = "",
     ) -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
