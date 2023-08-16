@@ -39,26 +39,26 @@ def main(
     data_path: str = "",  # required argument
     output_dir: str = "./outputs",
     cache_dir: str = "./cache",
-    quantization: Union[str, None] = None,
+    quantization: Optional[str] = None,
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
     bnb_4bit_compute_dtype: str = "float32",
-    deepspeed: Union[str, None] = None,
+    deepspeed: Optional[str] = None,
     # peft parameters
-    tuner: Union[str, None] = None,
+    tuner: Optional[str] = None,
     # lora hyperparameters
     lora_r: int = 8,
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
-    lora_target_modules: Union[List[str], None] = None,
+    lora_target_modules: Optional[List[str]] = None,
     lora_modules_to_save: Optional[List[str]] = None,
     # adalora parameters
     target_r: int = 8,
     init_r: int = 12,
-    adalora_target_moduels: Union[List[str], None] = None,
+    adalora_target_moduels: Optional[List[str]] = None,
     # ia3 hyperparameters
-    ia3_target_modules: Union[List[str], None] = None,
-    ia3_feedforward_modules: Union[List[str], None] = None,
+    ia3_target_modules: Optional[List[str]] = None,
+    ia3_feedforward_modules: Optional[List[str]] = None,
     # prompt tuning hyperparameters
     # prefix tuning hyperparameters
     # p-tuning hyperparameters
@@ -83,14 +83,12 @@ def main(
     group_by_length: bool = False,
     optim: str = "adamw_torch",
     # wandb params
-    report_to: Union[None, str] = None,
-    run_name: Union[None, str] = None,
+    report_to: Optional[str] = None,
+    run_name: Optional[str] = None,
     wandb_project: str = "",
     wandb_watch: str = "all",  # options: false | gradients | all
     wandb_log_model: str = "",  # options: false | true
-    resume_from_checkpoint: Union[
-        str, None
-    ] = None,  # either training checkpoint or final adapter
+    resume_from_checkpoint: Optional[str] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
     train_on_whole_sample: bool = False,
     local_rank: int = 0,
@@ -291,6 +289,7 @@ def main(
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             target_modules=lora_target_modules,
+            modules_to_save=lora_modules_to_save,
             bias="none",
             task_type="CAUSAL_LM",
         )
