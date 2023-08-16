@@ -381,7 +381,9 @@ def main(
         deepspeed=deepspeed,
     )
 
-    data_collator = transformers.DataCollatorWithPadding(tokenizer, padding=True)
+    data_collator = transformers.DataCollatorForSeq2Seq(
+        tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
+    )
 
     trainer = Trainer(
         model=model,
