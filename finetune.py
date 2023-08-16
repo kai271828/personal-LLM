@@ -245,7 +245,8 @@ def main(
             test_size=val_set_size, shuffle=True, seed=9527
         )
         train_data = train_val["train"].shuffle().map(preprocessor, remove_columns=train_val["train"].column_names)
-        val_data = train_val["test"].shuffle().map(preprocessor)
+        val_data = train_val["test"].shuffle().map(preprocessor, remove_columns=train_val["test"].column_names)
+        print(val_data[0])
     else:
         train_data = data["train"].shuffle().map(preprocessor, remove_columns=data["train"].column_names)
         val_data = None
