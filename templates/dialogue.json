@@ -1,5 +1,10 @@
 {
     "description": "Dialogue Template",
+    "data_columns": [
+        "instruction",
+        "input",
+        "output"
+    ],
     "prompt": "### Human: {input}\n\n### Assistant: ",
-    "response_split": "\n\n### Assistant: "
+    "response_split": "### Assistant: "
 }

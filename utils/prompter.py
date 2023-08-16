@@ -8,7 +8,7 @@ from typing import Union, List
 
 
 class Prompter(object):
-    __slots__ = ("template", "_verbose")
+    __slots__ = ("template", "data_columns", "_verbose")
 
     def __init__(
         self,
@@ -21,6 +21,7 @@ class Prompter(object):
             raise ValueError(f"Can't read {file_name}")
         with open(file_name, encoding="utf-8") as fp:
             self.template = json.load(fp)
+            self.data_columns = self.template["data_columns"]
         if self._verbose:
             print(
                 f"Using prompt template {template_name}: {self.template['description']}"

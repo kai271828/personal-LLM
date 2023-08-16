@@ -1,5 +1,9 @@
 {
     "description": "System Prompt Template",
+    "data_columns": [
+        "input",
+        "output"
+    ],
     "prompt": "You are a helpful assistant. 你是一個樂於助人的助手。請你提供專業、真實、有邏輯、有價值的詳細回復。\n{input}\n\n###\n\n",
     "response_split": "\n\n###\n\n"
 }

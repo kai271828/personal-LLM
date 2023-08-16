@@ -1,7 +1,7 @@
 # TODO: add required libraries
 import os
 import sys
-from typing import List, Union
+from typing import List, Union, Optional
 
 import fire
 import torch
@@ -51,6 +51,7 @@ def main(
     lora_alpha: int = 16,
     lora_dropout: float = 0.05,
     lora_target_modules: Union[List[str], None] = None,
+    lora_modules_to_save: Optional[List[str]] = None,
     # adalora parameters
     target_r: int = 8,
     init_r: int = 12,
@@ -91,7 +92,6 @@ def main(
         str, None
     ] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
-    data_columns: List[str] = ["instruction", "input", "output"],
     train_on_whole_sample: bool = False,
     local_rank: int = 0,
 ):
@@ -233,7 +233,7 @@ def main(
         prompter = Prompter(prompt_template_name)
 
     preprocessor = get_preprocessor(
-        data_columns=data_columns,
+        data_columns=prompter.data_columns,
         prompter=prompter, 
         tokenizer=tokenizer, 
         cutoff_len=cutoff_len, 
@@ -246,8 +246,6 @@ def main(
         )
         train_data = train_val["train"].shuffle().map(preprocessor, remove_columns=train_val["train"].column_names)
         val_data = train_val["test"].shuffle().map(preprocessor, remove_columns=train_val["test"].column_names)
-        print("input_ids len: ", len(val_data[0]["input_ids"]))
-        print("labels len: ", len(val_data[0]["labels"]))
     else:
         train_data = data["train"].shuffle().map(preprocessor, remove_columns=data["train"].column_names)
         val_data = None
@@ -394,13 +392,6 @@ def main(
         data_collator=data_collator,
     )
     model.config.use_cache = False
-
-    # Train
-    # if tuner:
-    #     old_state_dict = model.state_dict
-    #     model.state_dict = (
-    #         lambda self, *_, **__: get_peft_model_state_dict(self, old_state_dict())
-    #     ).__get__(model, type(model))
 
     if torch.__version__ >= "2" and sys.platform != "win32":
         print("perform torch.compile.")
