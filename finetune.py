@@ -246,7 +246,7 @@ def main(
 
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
-            train_size=train_set_size, test_size=val_set_size, shuffle=True, seed=9527
+            train_size=train_set_size, test_size=val_set_size, shuffle=True
         )
         train_data = (
             train_val["train"]
