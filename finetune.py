@@ -43,6 +43,7 @@ def main(
     bnb_4bit_quant_type: str = "fp4",
     bnb_4bit_compute_dtype: str = "float32",
     push_to_hub: bool = False,
+    hub_model_id: Optional[str] = None,
     deepspeed: Optional[str] = None,
     # peft parameters
     tuner: Optional[str] = None,
@@ -141,6 +142,11 @@ def main(
 
     if quantization:
         assert tuner, "Training quantized weights directly is not supported."
+
+    if push_to_hub:
+        assert (
+            hub_model_id
+        ), "Please specify a --hub_model_id, e.g. --hub_model_id='myID/myRepo'"
 
     if lora_target_modules is None and tuner == "LoRA":
         if "bloom" in base_model:
@@ -387,6 +393,7 @@ def main(
         run_name=run_name,
         deepspeed=deepspeed,
         push_to_hub=push_to_hub,
+        hub_model_id=hub_model_id,
     )
 
     data_collator = transformers.DataCollatorForSeq2Seq(
@@ -413,6 +420,11 @@ def main(
         model.save_pretrained(output_dir, state_dict=model.state_dict())
     else:
         model.save_pretrained(output_dir)
+
+    if push_to_hub:
+        if not tuner:
+            tokenizer.push_to_hub(hub_model_id)
+        model.push_to_hub(hub_model_id)
 
     print("\n If there's a warning about missing keys above, please disregard :)")
 
