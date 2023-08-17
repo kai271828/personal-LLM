@@ -14,7 +14,7 @@ from transformers import (
     GenerationConfig,
 )
 
-from utils.prompter import Prompter
+from utils.prompter import InstructionPrompter, Prompter
 
 
 def main(
@@ -42,7 +42,10 @@ def main(
     else:
         device = "cpu"
 
-    prompter = Prompter(prompt_template_name)
+    if prompt_template_name == "instruction":
+        prompter = InstructionPrompter(prompt_template_name)
+    else:
+        prompter = Prompter(prompt_template_name)
 
     if "llama" in base_model:
         tokenizer = LlamaTokenizer.from_pretrained(base_model, cache_dir=cache_dir)
