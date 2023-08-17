@@ -42,6 +42,7 @@ def main(
     nested_quant: bool = False,
     bnb_4bit_quant_type: str = "fp4",
     bnb_4bit_compute_dtype: str = "float32",
+    push_to_hub: bool = False,
     deepspeed: Optional[str] = None,
     # peft parameters
     tuner: Optional[str] = None,
@@ -385,6 +386,7 @@ def main(
         report_to=report_to,
         run_name=run_name,
         deepspeed=deepspeed,
+        push_to_hub=push_to_hub,
     )
 
     data_collator = transformers.DataCollatorForSeq2Seq(
