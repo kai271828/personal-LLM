@@ -99,7 +99,7 @@ def main(
         instruction_ = input("Please enter instruction: ")
         input_ = input("Please enter the corresponding input (or just skip): ")
 
-        prompt = prompter.generate_prompt(instruction_, input_)
+        prompt = prompter.generate_training_sample(instruction_, input_)
         inputs = tokenizer(prompt, return_tensors="pt")
         input_ids = inputs["input_ids"].to(device)
 
