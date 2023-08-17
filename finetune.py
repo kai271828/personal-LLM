@@ -88,7 +88,9 @@ def main(
     wandb_project: str = "",
     wandb_watch: str = "all",  # options: false | gradients | all
     wandb_log_model: str = "",  # options: false | true
-    resume_from_checkpoint: Optional[str] = None,  # either training checkpoint or final adapter
+    resume_from_checkpoint: Optional[
+        str
+    ] = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "instruction",  # The prompt template to use, will default to instruction.
     train_on_whole_sample: bool = False,
     local_rank: int = 0,
@@ -231,20 +233,40 @@ def main(
 
     preprocessor = get_preprocessor(
         data_columns=prompter.data_columns,
-        prompter=prompter, 
-        tokenizer=tokenizer, 
-        cutoff_len=cutoff_len, 
-        train_on_whole_sample=train_on_whole_sample
+        prompter=prompter,
+        tokenizer=tokenizer,
+        cutoff_len=cutoff_len,
+        train_on_whole_sample=train_on_whole_sample,
     )
 
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
             test_size=val_set_size, shuffle=True, seed=9527
         )
-        train_data = train_val["train"].shuffle().map(preprocessor, remove_columns=train_val["train"].column_names)
-        val_data = train_val["test"].shuffle().map(preprocessor, remove_columns=train_val["test"].column_names)
+        train_data = (
+            train_val["train"]
+            .shuffle()[:train_set_size]
+            .map(preprocessor, remove_columns=train_val["train"].column_names)
+            if train_set_size
+            else train_val["train"]
+            .shuffle()
+            .map(preprocessor, remove_columns=train_val["train"].column_names)
+        )
+        val_data = (
+            train_val["test"]
+            .shuffle()
+            .map(preprocessor, remove_columns=train_val["test"].column_names)
+        )
     else:
-        train_data = data["train"].shuffle().map(preprocessor, remove_columns=data["train"].column_names)
+        train_data = (
+            data["train"]
+            .shuffle()[:train_set_size]
+            .map(preprocessor, remove_columns=data["train"].column_names)
+            if train_set_size
+            else data["train"]
+            .shuffle()
+            .map(preprocessor, remove_columns=train_val["train"].column_names)
+        )
         val_data = None
 
     # Prepare model
@@ -391,7 +413,7 @@ def main(
 
     if torch.__version__ >= "2" and sys.platform != "win32":
         print("perform torch.compile.")
-        model = torch.compile(model)        
+        model = torch.compile(model)
 
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
