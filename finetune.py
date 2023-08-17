@@ -61,8 +61,6 @@ def main(
     # prompt tuning hyperparameters
     # prefix tuning hyperparameters
     # p-tuning hyperparameters
-    # llm hyperparameters
-    add_eos_token: bool = True,
     # training hyperparams
     batch_size: int = 128,
     micro_batch_size: int = 4,
