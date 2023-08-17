@@ -117,7 +117,7 @@ def main(
                 max_new_tokens=max_new_tokens,
             )
             s = generation_output.sequences[0]
-            print(s)
+            print("tensor that model output: ", s, len(s))
             output = tokenizer.decode(s)
             print(output)
 
