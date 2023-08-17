@@ -1,7 +1,7 @@
 torchrun --nnodes 1 --nproc_per_node 1 finetune.py \
     --base_model 'ziqingyang/chinese-alpaca-2-7b' \
     --data_path 'data/data_0814.json' \
-    --output_dir './output' \
+    --output_dir '/content/drive/MyDrive/llama_test_bf16' \
     --use_fp16 True \
     --num_epochs 1 \
     --warmup_steps 2 \

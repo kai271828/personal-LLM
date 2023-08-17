@@ -239,14 +239,10 @@ def main(
 
     if val_set_size > 0:
         train_val = data["train"].train_test_split(
-            test_size=val_set_size, shuffle=True, seed=9527
+            train_size=train_set_size, test_size=val_set_size, shuffle=True, seed=9527
         )
         train_data = (
             train_val["train"]
-            .shuffle()[:train_set_size]
-            .map(preprocessor, remove_columns=train_val["train"].column_names)
-            if train_set_size
-            else train_val["train"]
             .shuffle()
             .map(preprocessor, remove_columns=train_val["train"].column_names)
         )
@@ -258,12 +254,8 @@ def main(
     else:
         train_data = (
             data["train"]
-            .shuffle()[:train_set_size]
-            .map(preprocessor, remove_columns=data["train"].column_names)
-            if train_set_size
-            else data["train"]
             .shuffle()
-            .map(preprocessor, remove_columns=train_val["train"].column_names)
+            .map(preprocessor, remove_columns=data["train"].column_names)
         )
         val_data = None
 
