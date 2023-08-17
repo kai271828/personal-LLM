@@ -384,7 +384,7 @@ def main(
         save_strategy="steps",
         eval_steps=eval_steps if val_set_size > 0 else None,
         save_steps=save_steps,
-        output_dir="." if push_to_hub else output_dir,
+        output_dir=output_dir,
         save_total_limit=save_total_limit,
         load_best_model_at_end=True if val_set_size > 0 else False,
         ddp_find_unused_parameters=False if ddp else None,
