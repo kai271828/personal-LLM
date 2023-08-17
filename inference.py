@@ -30,6 +30,7 @@ def main(
     top_p: float = 0.75,
     top_k: int = 10,
     num_beams: int = 4,
+    do_sample: bool = True,
     max_new_tokens: int = 128,
     stream_output=False,
 ):
@@ -96,6 +97,7 @@ def main(
         top_p=top_p,
         top_k=top_k,
         num_beams=num_beams,
+        do_sample=do_sample,
     )
 
     while True:
