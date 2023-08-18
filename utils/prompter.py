@@ -33,7 +33,7 @@ class Prompter(object):
         label: str,
     ) -> str:
         data_sample = self.template["prompt"].format(input=input) + label
-        
+
         if self._verbose:
             print(data_sample)
         return data_sample
@@ -70,7 +70,7 @@ class InstructionPrompter(Prompter):
         label: str = "",
     ) -> str:
         # returns the full prompt from instruction and optional input
-        # if a label (=response, =output) is provided, it's also appended.
+        # if a label (response or output) is provided, it's also appended.
         if input:
             prompt = self.template["prompt_input"].format(
                 instruction=instruction, input=input
