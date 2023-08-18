@@ -262,6 +262,7 @@ def main(
         val_data = None
 
     # Prepare model
+    print("Loading the model...")
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True if quantization == "4bit" else False,
         load_in_8bit=True if quantization == "8bit" else False,
@@ -330,6 +331,7 @@ def main(
         raise NotImplementedError
 
     if tuner:
+        print("Getting the model with adapter...")
         model.enable_input_require_grads()
         model = get_peft_model(model, peft_config)
 
@@ -360,6 +362,7 @@ def main(
         model.model_parallel = True
 
     if use_tf32:
+        print("Enable tf32 dtype.")
         torch.backends.cuda.matmul.allow_tf32 = True
 
     # Trainer setting
