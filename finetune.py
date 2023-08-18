@@ -237,7 +237,6 @@ def main(
         prompter = Prompter(prompt_template_name)
 
     preprocessor = get_preprocessor(
-        data_columns=prompter.data_columns,
         prompter=prompter,
         tokenizer=tokenizer,
         cutoff_len=cutoff_len,
