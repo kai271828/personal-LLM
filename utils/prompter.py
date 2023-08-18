@@ -30,7 +30,7 @@ class Prompter(object):
     def generate_training_sample(
         self,
         input: str,
-        label: str,
+        label: str = "",
     ) -> str:
         data_sample = self.template["prompt"].format(input=input) + label
 
