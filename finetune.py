@@ -125,10 +125,6 @@ def main(
         "P-tuning",
         None,
     ], "--tuner only supprts 'LoRA', 'AdaLoRA', 'IA3', 'Prompt', 'Prefix', or 'P-tuning', or None."
-    assert prompt_template_name in [
-        None,
-        "instruction",
-    ], "--prompt_template_name only supports 'instruction' or None"
     assert optim in [
         "adamw_torch",
         "adamw_hf",
