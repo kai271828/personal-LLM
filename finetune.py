@@ -296,7 +296,6 @@ def main(
             print("Cast model to half.")
         except ValueError:
             print(model.dtype)
-            exit()
 
     if quantization and tuner:
         model = prepare_model_for_kbit_training(model)
