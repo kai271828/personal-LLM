@@ -267,7 +267,7 @@ def main(
         load_in_4bit=True if quantization == "4bit" else False,
         load_in_8bit=True if quantization == "8bit" else False,
         bnb_4bit_use_double_quant=nested_quant,
-        bnb_4bit_quant_type=bnb_4bit_quant_typ,
+        bnb_4bit_quant_type=bnb_4bit_quant_type,
         bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
     )
     print("quantization configs:", bnb_config)
