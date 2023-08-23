@@ -23,6 +23,6 @@ tensorboard-data-server>=0.7.1
 tokenize-rt>=5.1.0
 tokenizers>=0.13.3
 torch>=2.0
-transformers>=4.30.2
+transformers==4.31.0
 transformers[deepspeed]
 wandb
