@@ -13,7 +13,7 @@ jupyter-lsp>=2.0.0
 loralib>=0.1.1
 numpy>=1.15.0
 packaging>=14.3
-peft
+peft==0.4.0
 protobuf>=4.21.6
 scipy>=1.10.1
 sentencepiece>=0.1.99
