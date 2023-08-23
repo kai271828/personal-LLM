@@ -290,8 +290,12 @@ def main(
         )
 
     if not (use_fp16 or use_bf16 or quantization):
-        model.half()
-        print("Cast model to half.")
+        try:
+            model.half()
+            print("Cast model to half.")
+        except Exception():
+            print(model.dtype)
+            exit()
 
     if quantization and tuner:
         model = prepare_model_for_kbit_training(model)
