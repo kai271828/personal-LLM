@@ -293,7 +293,7 @@ def main(
         try:
             model.half()
             print("Cast model to half.")
-        except Exception():
+        except ValueError:
             print(model.dtype)
             exit()
 
